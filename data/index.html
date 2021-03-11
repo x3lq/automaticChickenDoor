@@ -1,0 +1,178 @@
+<!doctype html>
+
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+
+    <title>The HTML5 Herald</title>
+    <meta name="description" content="The HTML5 Herald">
+    <meta name="author" content="SitePoint">
+</head>
+
+<body>
+    <div>
+        <div>
+            <div style="margin-top: 2em;">
+                <button onclick="reboot()">Restart Chickens</button>
+            </div>
+            <div style="margin-top: 2em;">
+                <button onclick="reset()">Reset (This will delete the current configuration)</button>
+            </div>
+            <div style="margin-top: 2em;">
+                <label for="fday">W-Lan Settings:</label>
+                <input type="text" id="ssid" name="ssid"><br><br>
+                <input type="text" id="pw" name="pw"><br><br>
+                <button onclick="setWlan()">Einstellungen Setzen</button>
+            </div>
+        </div>
+        <div>
+            <label for="currentReading" id="currentReadingText">Current Reading: nan</label>
+        </div>
+        <div style="margin-top: 2em;">
+            <label for="fday">Day sensor (Wert zwischen 0 und 1.0):</label>
+            <input type="text" id="day" name="fday"><br><br>
+            <button onclick="updateDay()">Tagsensor setzen</button>
+        </div>
+        <div style="margin-top: 2em;">
+            <label for="fnight">Night Sensor (Wert zwischen 0 und 1.0):</label>
+            <input type="text" id="night" name="fnight"><br><br>
+            <button onclick="updateNight()">Nachtsensor setzen</button>
+        </div>
+        <div style="margin-top: 2em;">
+            <div>
+                <label for="motorTurns" id="currentMotorTurn">Current Turn Number: nan</label>
+            </div>
+            <label for="motorTurns">Motor Anzahl der Drehungen (Wert zwischen 0 und x.x):</label>
+            <input type="text" id="motor" name="fnight"><br><br>
+            <button onclick="motorUpdate()">Motordrehungen setzen</button>
+        </div>
+        <div style="margin-top: 2em;">
+            <label for="fnight">Aktueller Tür Status:</label>
+            <label id="state">{{nan}}</label>
+        </div>
+        <div style="margin-top: 2em;">
+            <button onclick="openDoor()">Tür öffnen (Who lets the chicken out)</button>
+        </div>
+        <div style="margin-top: 2em;">
+            <button onclick="closeDoor()">Tür schließen (No time for a chicken!)</button>
+        </div>
+    </div>
+    <script>
+        var baseURL = "http://" + document.location.hostname;
+        console.log("Baser url " + baseURL);
+        setTimeout(getReading, 1000);
+        setTimeout(getMotorTurns, 1000);
+        setTimeout(getState, 1000);
+
+        function updateDay() {
+            var value = document.getElementById("day").value;
+            httpPostAsync(baseURL + "/setDayReading", "value=" + value, function(text) {
+                console.log(text);
+            });
+        }
+
+        function updateNight() {
+            var value = document.getElementById("night").value;
+            httpPostAsync(baseURL + "/setNightReading", "value=" + value, function(text) {
+                console.log(text);
+            });
+        }
+
+        function getMotorTurns() {
+            httpGetAsync(baseURL + "/getMotorTurns", function (text) {
+                document.getElementById("currentMotorTurn").innerHTML = "Current turn number: " + text;
+                console.log(text);
+            });
+        }
+
+        function getState() {
+            httpGetAsync(baseURL + "/getState", function (text) {
+                if(text === "1") {
+                    document.getElementById("state").innerHTML = "Chicken Party!";
+                } else {
+                    document.getElementById("state").innerHTML = "Chicken Sleeping! Closed door.";
+                }
+                setTimeout(getState, 1000);
+            }); 
+        }
+
+        function motorUpdate() {
+            var value = document.getElementById("motor").value;
+            httpPostAsync(baseURL + "/setMotorTurns", "steps=" + value, function(text) {
+                console.log(text);
+            });
+
+            setTimeout(getMotorTurns, 3000);
+        }
+
+        function getReading() {
+            httpGetAsync(baseURL + "/getSensorReading", function (text) {
+                document.getElementById("currentReadingText").innerHTML = "Current reading: " + text;
+                setTimeout(getReading, 1000);
+            });
+        }
+        
+        function openDoor() {
+            httpPostAsync(baseURL + "/open", "", function(text) {
+                console.log(text);
+            });
+        }
+
+        function closeDoor() {
+            httpPostAsync(baseURL + "/close", "", function(text) {
+                console.log(text);
+            });
+        }
+
+        function reboot() {
+            httpPostAsync(baseURL + "/reboot", "", function(text) {
+                alert(text);
+            });
+        }
+
+        function reset() {
+            httpPostAsync(baseURL + "/reset", "", function(text) {
+                alert(text);
+            });
+        }
+
+        function setWlan() {
+            var ssid = document.getElementById("ssid").value;
+            var pw = document.getElementById("pw").value;
+
+            var setupString = "ssid={0}&pw={1}".replace("{0}", ssid).replace("{1}", pw);
+            
+            if(pw.length != 0 && ssid.length != 0) {
+                httpPostAsync(baseURL + "/setWlan", setupString, function(text) {
+                    alert(text);
+                });
+            }
+        }
+
+        function httpGetAsync(theUrl, callback) {
+            var xmlHttp = new XMLHttpRequest();
+            xmlHttp.onreadystatechange = function () {
+                if (xmlHttp.readyState == 4 && xmlHttp.status == 200) {
+                    callback(xmlHttp.responseText);
+                }
+            }
+            xmlHttp.open("GET", theUrl, true); // true for asynchronous 
+            xmlHttp.send(null);
+        }
+
+        function httpPostAsync(theUrl, body, callback) {
+            var xhttp = new XMLHttpRequest();
+            xhttp.onreadystatechange = function () {
+                if (this.readyState == 4 && this.status == 200) {
+                    callback(xhttp.responseText);
+                }
+            };
+            xhttp.open("POST", theUrl, true);
+            xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+            xhttp.send(body);
+        }
+    </script>
+</body>
+
+</html>
