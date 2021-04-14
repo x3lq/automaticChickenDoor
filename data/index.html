@@ -13,6 +13,10 @@
 <body>
     <div>
         <div>
+            <label for="tempout" id="tempout">Outside Temperature: nan</label>
+            <label for="tempin" id="tempin">Inside Temperature: nan</label>
+        </div>
+        <div>
             <div style="margin-top: 2em;">
                 <button onclick="reboot()">Restart Chickens</button>
             </div>
@@ -64,6 +68,8 @@
         setTimeout(getReading, 1000);
         setTimeout(getMotorTurns, 1000);
         setTimeout(getState, 1000);
+        setTimeout(getInsideTemp, 5000);
+        setTimeout(getOutsideTemp, 5000);
 
         function updateDay() {
             var value = document.getElementById("day").value;
@@ -82,6 +88,20 @@
         function getMotorTurns() {
             httpGetAsync(baseURL + "/getMotorTurns", function (text) {
                 document.getElementById("currentMotorTurn").innerHTML = "Current turn number: " + text;
+                console.log(text);
+            });
+        }
+
+        function getOutsideTemp() {
+            httpGetAsync(baseURL + "/getTempOutside", function (text) {
+                document.getElementById("tempout").innerHTML = "Outside Temperature: " + text;
+                console.log(text);
+            });
+        }
+
+        function getInsideTemp() {
+            httpGetAsync(baseURL + "/getTempInside", function (text) {
+                document.getElementById("tempin").innerHTML = "Inside Temperature: " + text;
                 console.log(text);
             });
         }

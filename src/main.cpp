@@ -9,8 +9,8 @@
 #include <Stepper.h>
 #include "DHT.h"
 
-#define TEMP_PIN_INSIDE 33
-#define TEMP_PIN_OUTSIDE 34
+#define TEMP_PIN_INSIDE 32
+#define TEMP_PIN_OUTSIDE 33
 #define DHTTYPE DHT11
 
 Motor motor;
@@ -323,5 +323,5 @@ void loop()
   tempOutsideReading = tmpOutside.readTemperature();
 
   Serial.println(tempInsideReading);
-  Serial.println(tempInsideReading);
+  Serial.println(tempOutsideReading);
 }
